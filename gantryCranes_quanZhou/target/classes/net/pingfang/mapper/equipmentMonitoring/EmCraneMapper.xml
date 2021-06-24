@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.equipmentMonitoring.EmCraneDao">
+	<!-- 获取所有岸桥监控信息 -->
+   <select id="getEmCraneList" resultType="net.pingfang.entity.equipmentMonitoring.EmCrane">
+   		SELECT 
+   			id,
+   			areaName,
+   			craneName,
+   			em_time		AS 'time',
+   			is_status	AS 'status',
+   			activity,
+   			plc_status  	AS 'plcStatus',
+   			uadate_time 	AS 'uadateTime',
+   			createtime 
+   		FROM em_crane
+   		ORDER BY craneName	
+   </select>
+   <!-- 根据岸桥名称获取岸桥监控数据 -->
+   <select id="getEmCraneByName" resultType="net.pingfang.entity.equipmentMonitoring.EmCrane">
+   		SELECT 
+   			id,
+   			areaName,
+   			craneName,
+   			em_time		AS 'time',
+   			is_status	AS 'status',
+   			activity,
+   			plc_status  	AS 'plcStatus'
+   		FROM em_crane
+   		WHERE craneName = #{craneName}
+   		LIMIT 0,1
+   </select>
+   
+   <!-- 获取岸桥上的相机监控信息 -->
+   <select id="getEmCameraListByCraneId" resultType="net.pingfang.entity.equipmentMonitoring.EmCamera">
+   		SELECT 
+   			id,
+   			craneId,
+		  	name,
+		 	ip,
+		  	is_status	AS 'status',
+		  	em_time		AS 'emTime',
+   			createtime 
+   		FROM em_camera
+   		WHERE craneId = #{craneId}
+   		ORDER BY id DESC
+   </select>
+   
+   
+   
+   
+   
+   <!-- 插入一条设备监控岸桥节点 -->
+   <insert id="addEmCrane" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="net.pingfang.entity.equipmentMonitoring.EmCrane">
+   		INSERT INTO em_crane 
+		(   
+   			areaName,
+   			craneName,
+   			em_time,
+   			is_status,
+   			activity,
+   			plc_status        
+		)VALUES(
+			#{areaName},	  
+			#{craneName},	 
+			#{time},
+			
+			#{status},	  
+			#{activity},	 
+			#{plcStatus}
+		)
+   </insert>
+   
+   <!-- 更新一条设备监控岸桥节点 -->
+   <update id="updateEmCrane" parameterType="net.pingfang.entity.equipmentMonitoring.EmCrane">
+   		UPDATE em_crane
+		SET
+			em_time = #{time},	  
+			is_status = #{status},	 
+			activity = #{activity},	 
+			plc_status = #{plcStatus},
+			uadate_time = now()
+		WHERE id = #{id}
+   </update>
+    <!-- 更新一条岸桥设备监控为离线状态 -->
+   <update id="updateIsActivity">
+   		UPDATE em_crane
+		SET
+			activity = #{activity},	 
+			uadate_time = now()
+		WHERE craneName = #{craneName}
+   </update>
+   
+   <!-- 批量插入相机监控信息数据 -->
+	<insert id="addEmCameraList" parameterType="java.util.ArrayList">
+		INSERT INTO em_camera(   
+		  craneId,
+		  name,
+		  ip,
+		  is_status
+		)
+		VALUES
+      <foreach collection="list" item="emp" separator=",">
+	      (	#{emp.craneId},
+	      	#{emp.name},
+	      	#{emp.ip},
+	      	#{emp.status}
+	       )
+      </foreach>
+	</insert>   
+</mapper>

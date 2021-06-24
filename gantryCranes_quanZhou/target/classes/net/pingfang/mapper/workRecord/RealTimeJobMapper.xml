@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="net.pingfang.dao.workRecord.RealTimeJobServiceDao">
+
+	<!-- 更新状态 -->
+   <update id="updateWorkRecordStateById" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		UPDATE work_record
+            SET
+                is_state=#{state},
+                bay_info=#{bayInfo},
+                tally_clerk=#{tallyClerk}
+            WHERE 
+            	id = #{id} 
+   </update>
+   
+   <select id="getRtWorkRecordById" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="int">   		
+	  SELECT
+			bay_info 			AS 'bayInfo'			
+	    FROM work_record
+	    WHERE  
+	    	id = #{id}
+   </select>
+   <!-- 查询BAY位是否被占用 -->
+   <select id="getCountBay" resultType="int" parameterType="net.pingfang.entity.work.WorkRecordVo">   		
+	  SELECT COUNT(ID) FROM work_record 
+	  WHERE
+	  	<![CDATA[ id <> #{id} ]]> 
+	  	AND vessel_voyage_number = #{vesselNumber} 
+	  	AND bay_info = #{bayInfo}
+   </select>
+   
+   <!-- 更新状态 -->
+   <update id="updateImgMerge">
+   		UPDATE img_infor
+            SET
+                work_id=#{imgInfo.workId},
+                seq_no=#{imgInfo.seqNo}
+            WHERE 
+            	seq_no = #{seqNo} 
+   </update>
+   
+   <!-- 更新N4状态 -->
+   <update id="updateN4Status">
+   		UPDATE work_record
+            SET
+                n4_status=#{status}
+            WHERE 
+            	id = #{id} 
+   </update>
+   <!-- 更新N4状态 -->
+   <update id="updateN4StatusTwo">
+   		UPDATE work_record
+            SET
+                n4_status=#{status}
+            WHERE 
+            	seq_no = #{seqNo} 
+            AND update_contaid = #{contaid}
+   </update>
+   
+</mapper>

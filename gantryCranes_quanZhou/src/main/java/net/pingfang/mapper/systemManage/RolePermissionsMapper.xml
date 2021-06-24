@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.systemManage.RolePermissionsDao">
+	
+	<!-- 根据角色ID获取角色权限 -->
+   <select id="getRolePermissionsListById"  resultType="net.pingfang.entity.role.Trolemenu">
+	    SELECT 
+	    	rm.permissions_id	AS "permissionsId"
+		FROM t_role_menu rm 
+		LEFT JOIN t_permissions p ON rm.permissions_id = p.id 
+		WHERE rm.role_id  = #{id} AND rm.permissions_id >1
+	</select>
+	<!-- 批量新增角色权限 -->
+   <insert id="addRolePermissionsList" parameterType="java.util.ArrayList">
+   		INSERT INTO t_role_menu 
+		(
+		  	role_id,
+			permissions_id
+		)
+		VALUES  
+		<foreach collection="list" item="emp" separator=",">
+	      (
+	       #{emp.roleId},
+	       #{emp.permissionsId}
+	       )
+      </foreach> 	
+   </insert>
+   <!--  删除权限 -->
+    <delete id="deleteRolePermissions">
+   		DELETE FROM t_role_menu WHERE role_id = #{roleId}
+   		<if test="0 !=permissionsId">
+	  		AND permissions_id >1
+	  	</if>
+   </delete>
+   <!-- 根据权限ID查询权限是否被引用 -->
+   <select id="getCountRpBypermissionsId"  resultType="int" parameterType="int">
+	    SELECT COUNT(id) FROM t_role_menu WHERE permissions_id = #{permissionsId}
+	</select>
+</mapper>

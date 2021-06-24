@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Allproject.iml" filepath="$PROJECT_DIR$/Allproject.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../workproject/eltservice_qz/eltservice_qz.iml" filepath="$PROJECT_DIR$/../workproject/eltservice_qz/eltservice_qz.iml" />
+      <module fileurl="file://$PROJECT_DIR$/gantryCranes_quanZhou/gantryCranes_quanZhou.iml" filepath="$PROJECT_DIR$/gantryCranes_quanZhou/gantryCranes_quanZhou.iml" />
+      <module fileurl="file://$PROJECT_DIR$/normal/normal.iml" filepath="$PROJECT_DIR$/normal/normal.iml" />
+      <module fileurl="file://$PROJECT_DIR$/springshiro/springshiro.iml" filepath="$PROJECT_DIR$/springshiro/springshiro.iml" />
+    </modules>
+  </component>
+</project>

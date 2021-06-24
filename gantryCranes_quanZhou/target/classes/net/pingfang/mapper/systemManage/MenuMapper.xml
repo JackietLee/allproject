@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.systemManage.MenuDao">
+	<!-- 根据ID获取一条菜单数据 -->
+   <select id="getMenuById"  resultType="net.pingfang.entity.systemManage.MenuVo">
+	    SELECT 
+	    	id,
+	    	parentId, 
+	    	name,
+	    	f_name AS 'fname',
+	    	icon,
+	    	url,
+	    	sort
+	    FROM t_menu
+	    WHERE id = #{id}
+	</select>
+	<!-- 获取所有菜单 -->
+   <select id="getListMenu"  resultType="net.pingfang.entity.systemManage.MenuVo">
+	    SELECT 
+	    	id,
+	    	parentId, 
+	    	name,
+	    	f_name AS 'fname',
+	    	icon,
+	    	url,
+	    	sort,
+	    	display,
+	    	remarks
+	    FROM t_menu
+	    ORDER BY parentId,sort
+	</select>
+	
+	<!-- 新增菜单 -->
+   <insert id="addMenu" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="net.pingfang.entity.systemManage.MenuVo">
+   		INSERT INTO t_menu
+		(  
+   			parentId,
+	    	name,
+	    	f_name,
+	    	icon,
+	    	url,
+	    	sort,
+	    	display,
+	    	remarks
+		)VALUES(
+			#{parentId},	  
+			#{name},	 
+			#{url},
+			#{icon},
+			#{url},
+			#{sort},
+			#{display},
+			#{remarks}
+		)
+   </insert>
+   
+   <!-- 更新菜单 -->
+   <update id="updateMenu" parameterType="net.pingfang.entity.systemManage.MenuVo">
+   		UPDATE t_menu
+		SET
+	    		name = #{name}
+			<if test="null !=parentId and parentId >0">
+				,parentId = #{parentId}
+			</if>
+	    	<if test="null !=icon">
+	    		,icon = #{icon}
+	    	</if>
+	    	<if test="null !=url">
+	    		,f_name = #{url},url = #{url}
+	    	</if>
+	    	<if test="null !=sort and sort >0">
+	    		,sort = #{sort}
+	    	</if>
+	    	<if test="null !=display">
+	    		,display = #{display}
+	    	</if>
+	    	<if test="null !=remarks">
+	    		,remarks = #{remarks}
+	    	</if>
+		WHERE id = #{id}
+   </update>
+   
+   <!--  删除菜单 -->
+    <delete id="deleteMenu">
+   		DELETE FROM t_menu WHERE id = #{id} AND id >1
+   </delete>
+   <!-- 根据ID子菜单数据 -->
+   <select id="getCountMenuByparentId"  resultType="int">
+	    SELECT COUNT(1) FROM t_menu WHERE parentId = #{id}
+	</select>
+	
+	
+	<!-- 根据角色获取相应菜单 -->
+   <select id="getListMenuByRole"  resultType="net.pingfang.entity.systemManage.MenuVo" parameterType="java.util.ArrayList">
+	    SELECT 
+			m.id,
+	    	m.parentId, 
+	    	m.name,
+	    	m.f_name AS 'fname',
+	    	m.icon,
+	    	m.url,
+	    	m.display,
+	    	COUNT(m.id)
+		FROM t_role_menu rm
+		LEFT JOIN t_permissions p ON rm.permissions_id = p.id
+		LEFT JOIN t_menu m ON p.menu_id = m.id
+		WHERE rm.role_id IN 
+		<foreach collection="list" item="item" open="(" separator="," close=")">
+	       #{item.id}
+      	</foreach>
+		AND p.type = 'menu'
+		GROUP BY m.id
+		ORDER BY m.parentId,m.sort
+	</select>
+	
+</mapper>

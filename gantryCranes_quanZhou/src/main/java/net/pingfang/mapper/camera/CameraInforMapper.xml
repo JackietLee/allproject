@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.camera.CameraInforDao">
+	<!-- 获取所有摄像机信息 -->
+   <!-- <select id="getCameraInforList" resultType="net.pingfang.entity.camera.CameraInforVo" parameterType="net.pingfang.entity.camera.CameraInforVo">
+   		SELECT 
+   			c1.id,
+   			c1.name,
+   			c1.code,
+   			c1.crane_id		AS 'craneId',
+   			c1.position,
+   			c1.ip_address	AS 'ipAddress',
+   			c1.port,
+   			c1.createtime,
+   			c2.craneNum	AS 'craneNum'
+		FROM camera_infor c1
+		LEFT JOIN crane_infor c2 ON c1.crane_id = c2.id
+		WHERE 1 = 1
+	  	<if test="null !=craneId and craneId >0">
+	  		AND c1.crane_id = #{craneId}
+	  	</if> 
+	  	<if test="null !=name and ''!=name">
+	  		AND UPPER(c1.name) LIKE UPPER(CONCAT('%',#{name},'%'))
+	  	</if>
+   </select> -->
+   <!-- 获取所有摄像机信息——（谢小惠） -->
+   <select id="getCameraInforList" resultType="net.pingfang.entity.camera.CameraInforVo" parameterType="net.pingfang.entity.camera.CameraInforVo">
+   		SELECT 
+   			c1.id,
+   			c1.name,
+   			c1.code,
+   			c1.crane_id		AS 'craneId',
+   			c1.position,
+   			c1.ip_address	AS 'ipAddress',
+   			c1.port,
+   			c1.createtime,
+   			c2.craneNum	AS 'craneNum'
+		FROM camera_infor c1
+		LEFT JOIN crane_infor c2 ON c1.crane_id = c2.id
+		WHERE 1 = 1
+	  	<!-- <if test="null !=craneId and craneId >0">
+	  		AND c1.crane_id = #{craneId}
+	  	</if>  -->
+	  	<if test="null !=craneNum and ''!=craneNum">
+	  		AND c2.craneNum = #{craneNum}
+	  	</if> 
+	  	<if test="null !=name and ''!=name">
+	  		AND UPPER(c1.name) LIKE UPPER(CONCAT('%',#{name},'%'))
+	  	</if>
+   </select>
+   
+   
+   <!-- 根据ID获取一条摄像机信息 -->
+   <select id="getCameraInforById" resultType="net.pingfang.entity.camera.CameraInforVo" parameterType="int">
+   		SELECT 
+   			c1.id,
+   			c1.name,
+   			c1.code,
+   			c1.crane_id		AS 'craneId',
+   			c1.position,
+   			c1.ip_address	AS 'ipAddress',
+   			c1.port,
+   			c1.createtime,
+   			c2.craneNum	AS 'craneNum'
+		FROM camera_infor c1
+		LEFT JOIN crane_infor c2 ON c1.crane_id = c2.id
+   		WHERE c1.id = #{id}
+   </select> 
+   
+   <select id="getListCameraInforById" resultType="CameraInforVo" parameterType="java.util.ArrayList">
+   		SELECT 
+			ca.`id`,
+			ca.`name`,
+			ca.`code`,
+			ca.`crane_id`	AS 'craneId',
+			ca.position,
+			ca.ip_address	AS 'ipAddress',
+			ca.port
+		FROM camera_infor ca
+		WHERE ca.id in
+		<foreach collection="list" item="emp" open="(" separator="," close=")">
+		      #{emp}
+	    </foreach>
+   </select> 
+   
+   
+   <!-- 插入一条摄像机信息 -->
+   <insert id="insertCameraInfor" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="net.pingfang.entity.camera.CameraInforVo">
+   		INSERT INTO camera_infor 
+		(   
+   			name,
+   			code,
+   			crane_id,
+   			position,
+   			ip_address,
+   			port
+		)VALUES(
+			#{name},	  
+			#{code},	 
+			#{craneId},
+			#{position},
+			#{ipAddress},
+			#{port}
+		)
+   </insert>
+   
+   <!-- 更新一条岸桥信息 -->
+   <update id="updateCameraInfor" parameterType="net.pingfang.entity.camera.CameraInforVo">
+   		UPDATE camera_infor
+		SET
+			name = #{name},
+   			code = #{code},
+   			crane_id = #{craneId},
+   			position = #{position},
+   			ip_address = #{ipAddress},
+   			port = #{port}
+		WHERE id = #{id}
+   </update>
+   
+   <!--  删除一条摄像机信息 -->
+    <delete id="deleteCameraInfor">
+   		DELETE FROM camera_infor WHERE id = #{id}
+   </delete>
+   
+   <!-- 根据岸桥ID获取所有摄像机集合 -->
+   <select id="getCameraInforListByCraneId" resultType="net.pingfang.entity.camera.CameraInforVo" parameterType="int">
+   		SELECT 
+   			id,
+   			name,
+   			code,
+   			crane_id		AS 'craneId',
+   			position,
+   			ip_address	AS 'ipAddress',
+   			port,
+   			createtime,
+		FROM camera_infor
+   		WHERE crane_id = #{craneId}
+   </select> 
+   
+    <!-- 获取所有门机下的球机相机 -->
+   <select id="getHpCameraOptions" resultType="CameraInforVo">
+   		SELECT 
+			cr.craneNum		AS 'craneNum',
+			ca.`id`,
+			ca.`name`,
+			ca.`code`,
+			ca.`crane_id`	AS 'craneId',
+			ca.position,
+			ca.ip_address	AS 'ipAddress',
+			ca.port
+		FROM crane_infor cr LEFT JOIN camera_infor ca ON cr.`id` = ca.`crane_id`
+		WHERE cr.type = '2'
+   </select> 
+   
+    <!-- 获取所有门机下的球机相机 -->
+   <select id="getHpCamera" resultType="CameraInforVo">
+   		SELECT 
+			ca.`id`,
+			ca.`name`,
+			ca.`code`,
+			ca.`crane_id`	AS 'craneId',
+			ca.position,
+			ca.ip_address	AS 'ipAddress',
+			ca.port
+		FROM camera_infor ca
+   </select> 
+   
+</mapper>

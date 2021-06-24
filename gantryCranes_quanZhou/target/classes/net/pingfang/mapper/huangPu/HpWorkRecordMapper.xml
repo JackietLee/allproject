@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.huangPu.HpWorkRecordDao">
+	
+	<!-- 获取所有作业记录总数 -->
+   <select id="getHpCountWorkRecord" resultType="int" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		SELECT COUNT(id) FROM work_record_huangpu
+   		WHERE 1 = 1
+   		<if test="null !=contaid and ''!=contaid">
+	  		AND UPPER(update_contaid) LIKE UPPER(CONCAT('%',#{contaid},'%'))
+	  	</if>
+	  	<if test="null !=craneNum and ''!=craneNum">
+	  		AND crane_num = #{craneNum}
+	  	</if> 
+	  	<if test="null !=workType and -1!=workType">
+	  		AND work_type = #{workType}
+	  	</if>
+	  	<if test="null !=containerType and 0 !=containerType">
+	  		 <choose>
+		      <when test="containerType == 100">
+		        AND container_type = 0
+		      </when>
+		      <otherwise>
+		        AND container_type = #{containerType}
+		      </otherwise>
+		    </choose>
+	  	</if>
+	  	<if test="null !=state and ''!=state">
+	  		AND is_state = #{state}
+	  	</if> 
+	  	<if test="null !=updateTopPlate and ''!=updateTopPlate">
+	  		AND update_top_plate = #{updateTopPlate}
+	  	</if>
+	  	<if test="null !=iso and ''!=iso">
+	  		AND iso = #{iso}
+	  	</if>
+	  	<if test="null !=passTime and ''!=passTime and null !=createTime and ''!=createTime">
+	  		AND passtime BETWEEN #{passTime} AND #{createTime}
+	  	</if>
+   </select>
+	<!-- 获取所有作业记录 -->
+   <select id="getHpAllWorkRecordList" resultType="WorkRecordVo" parameterType="java.util.Map">
+	  SELECT 
+	     	wr.id 					AS 'id',
+	     	wr.seq_no				AS 'seqNo',
+			wr.crane_num 			AS 'craneNum',
+			wr.vessel_name_cn 		AS 'vesselNameCn',
+			wr.work_type 			AS 'workType',	
+			wr.container_type 		AS 'containerType',		
+			wr.update_contaid 		AS 'updateContaid',
+			wr.update_top_plate 	AS 'updateTopPlate',
+			wr.iso 					AS 'iso',	
+			wr.bay_info				AS 'bayInfo',
+			wr.lane_num				AS 'laneNum',		
+			wr.is_state				AS 'state',
+			wr.stuffing_status		AS 'stuffingStatus',
+			wr.tally_clerk			AS 'tallyClerk',
+			wr.passtime  			AS 'passTime'
+	    FROM work_record_huangpu wr
+	    WHERE 1 = 1
+	  	<if test="null !=workRecordVo.contaid and ''!=workRecordVo.contaid">
+	  		AND UPPER(update_contaid) LIKE UPPER(CONCAT('%',#{workRecordVo.contaid},'%'))
+	  	</if>	
+	  	<if test="null !=workRecordVo.craneNum and ''!=workRecordVo.craneNum">
+	  		AND wr.crane_num = #{workRecordVo.craneNum}
+	  	</if> 
+	  	<if test="null !=workRecordVo.workType and -1!=workRecordVo.workType">
+	  		AND wr.work_type = #{workRecordVo.workType}
+	  	</if>
+	  	<if test="null !=workRecordVo.containerType and 0 !=workRecordVo.containerType">
+	  		 <choose>
+		      <when test="workRecordVo.containerType == 100">
+		        AND wr.container_type = 0
+		      </when>
+		      <otherwise>
+		        AND wr.container_type = #{workRecordVo.containerType}
+		      </otherwise>
+		    </choose>
+	  	</if>
+	  	<if test="null !=workRecordVo.state and ''!=workRecordVo.state">
+	  		AND wr.is_state = #{workRecordVo.state}
+	  	</if>
+	  	<if test="null !=workRecordVo.updateTopPlate and ''!=workRecordVo.updateTopPlate">
+	  		AND wr.update_top_plate = #{workRecordVo.updateTopPlate}
+	  	</if>
+	  	<if test="null !=workRecordVo.iso and ''!=workRecordVo.iso">
+	  		AND wr.iso = #{workRecordVo.iso}
+	  	</if>
+	  	<if test="null !=workRecordVo.passTime and ''!=workRecordVo.passTime and null !=workRecordVo.createTime and ''!=workRecordVo.createTime">
+	  		AND wr.passtime BETWEEN #{workRecordVo.passTime} AND #{workRecordVo.createTime}
+	  	</if>  	
+	  	ORDER BY wr.id DESC
+	  	LIMIT #{pageVo.startRow},#{pageVo.pageSize}
+   </select>
+   
+   
+   
+	 <!-- 查询门机实时作业数据 -->
+   <select id="getHpRealTimeWorkRecordList" resultType="WorkRecordVo">
+   		<foreach collection="list" item="item" index="index" separator="  UNION ALL">
+			  SELECT 
+			     	id 					AS 'id',
+				  	seq_no 				AS 'seqNo',		    	 
+					crane_num 			AS 'craneNum',
+					vessel_voyage_number AS 'vesselNumber',
+					work_type 			AS 'workType',	
+					update_contaid 		AS 'updateContaid',
+					bay_info 			AS 'bayInfo',
+					iso,
+					damaged,
+					passtime 			AS 'passTime'
+			    FROM work_record_huangpu
+			    WHERE 
+			  	crane_num = #{item.craneNum}
+				AND vessel_voyage_number = #{item.vesselNumber}	
+		      	<choose>
+			    	<when test="1 == state">
+			    		AND is_state = '1'
+			    	</when>
+			    	<otherwise>
+			    		AND (is_state = '0' OR is_state = '2')
+			    	</otherwise>
+			    </choose>
+	  		</foreach>
+	  		ORDER BY id DESC
+   </select>
+   
+   <!-- 根据作业编号查询门机已理货数据信息 -->
+   <select id="getHpAlreadyWorkRecordById" resultType="WorkRecordVo">   		
+	  SELECT
+	     	wr.id 					AS 'id',
+		  	wr.seq_no 				AS 'seqNo',
+		  	wr.area_num 			AS 'areaNum',
+		  	wr.crane_num 			AS 'craneNum',	
+		  	wr.vessel_name_cn		AS 'vesselNameCn',	   	 
+			wr.vessel_voyage_number	AS 'vesselNumber',
+			wr.vessel_code			AS 'vesselCode',
+			wr.work_type 			AS 'workType',	
+			wr.update_top_plate		AS 'updateTopPlate',
+			wr.container_type 		AS 'containerType',
+			wr.orderid,
+			wr.update_contaid 		AS 'updateContaid',
+			wr.bay_info 			AS 'bayInfo',			
+			wr.conta_weight 		AS 'contaWeight',
+			wr.iso 					AS 'iso',
+			wr.damaged,
+			wr.lane_num				AS 'laneNum',
+			wr.passtime				AS 'passTime'	
+			<!--  LEFT(wr.passtime,20)	AS 'passTime'	-->		
+	    FROM work_record_huangpu wr
+	    WHERE wr.id = #{id}
+   </select>
+   
+	
+	
+   <!-- 插入门机作业数据 -->
+   <insert id="insertHpWorkRecord" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="WorkRecordVo">
+   		INSERT INTO work_record_huangpu 
+		(     
+		  seq_no, 
+		  area_num,
+		  crane_num,
+		  vessel_name_cn,
+		  vessel_voyage_number,
+		  vessel_code,
+		  lane_num,
+		  work_type,
+		  plate,
+		  top_plate,
+		  update_top_plate,
+		  container_type,
+		  orderid,
+		  contaid,
+		  update_contaid,
+		  iso,
+		  ischeck,
+		  damaged,
+		  door_dir,
+		  door_lock,
+		  bay,
+		  bay_info,
+		  is_state,
+		  conta_weight,
+		  point_x,
+		  point_y,
+		  passtime,
+		  
+		  vessel_position,
+		  port_loading,
+		  port_discharge,
+		  port_destination,
+		  stuffing_status,
+		  danger_signs,
+		  danger_class,
+		  container_class,
+			 
+		  tally_clerk
+		)VALUES
+		(
+			  #{seqNo}, 
+			  #{areaNum},
+			  #{craneNum},
+			  #{vesselNameCn},
+			  #{vesselNumber},
+			  #{vesselCode},
+			  #{laneNum},
+			  #{workType},
+			  #{plate},
+			  #{topPlate},
+			  #{updateTopPlate},
+			  #{containerType},
+			  #{orderid},
+			  #{contaid},
+			  #{updateContaid},
+			  #{iso},
+			  #{ischeck},
+			  #{damaged},
+			  #{doorDir},
+			  #{doorLock},
+			  #{bay},
+			  #{bayInfo},
+			  #{state},
+			  #{contaWeight},
+			  #{pointX},
+			  #{pointY},
+			  #{passTime},
+			  
+			  #{vesselPosition},
+			  #{portLoading},
+			  #{portDischarge},
+			  #{portDestination},
+			  #{stuffingStatus},
+			  #{dangerSigns},
+			  #{dangerClass},
+			  #{containerClass},
+			 
+			  #{tallyClerk}	  
+			)   
+   </insert>
+   
+   
+    <!-- 更新门机作业数据 -->
+   <update id="updateHpWorkRecord" parameterType="WorkRecordVo">
+   		UPDATE work_record_huangpu
+         SET
+         	update_top_plate = #{updateTopPlate},
+         	<if test="updateTopPlateCount >0">
+         		update_top_plate_count = #{updateTopPlateCount},
+		  	</if>
+         	<if test="null !=vesselNumber and ''!=vesselNumber">
+         		vessel_name_cn = #{vesselNameCn},
+		  		vessel_voyage_number = #{vesselNumber},
+		  		vessel_code = #{vesselCode},
+		  	</if>
+		  	update_contaid = #{updateContaid},
+         	<if test="updateContaidCount >0">
+         		update_contaid_count = #{updateContaidCount},
+		  	</if>
+         	iso =  #{iso},
+         	damaged = #{damaged},         	
+         	<if test="null !=bayInfo and ''!=bayInfo">
+		  		bay_info = #{bayInfo},
+		  	</if> 
+		  	<if test="updateBayCount >0">
+         		update_bay_count = #{updateBayCount},
+		  	</if>         	
+         	<if test="null !=orderid and ''!=orderid">
+		  		orderid = #{orderid},
+		  	</if>		  	
+         	<if test="null !=state and ''!=state">
+		  		is_state = #{state},
+		  	</if> 
+		  	work_type = #{workType},
+		  	
+		  	 vessel_position = #{vesselPosition},
+			 port_loading = #{portLoading},
+			 port_discharge = #{portDischarge},
+			 port_destination = #{portDestination},
+			 stuffing_status = #{stuffingStatus},
+			 danger_signs = #{dangerSigns},
+			 danger_class = #{dangerClass},
+			 container_class = #{containerClass},
+		  	
+         	 tally_clerk = #{tallyClerk}
+         WHERE id =  #{id}
+   </update>
+   <!-- 查询箱号是否存在 -->
+   <select id="getHpRecord" resultType="WorkRecordVo" parameterType="WorkRecordVo">
+   		SELECT 
+   			id,
+   			seq_no		AS 'seqNo'
+   		FROM work_record_huangpu
+   		WHERE 
+	  		UPPER(update_contaid) = UPPER(#{contaid})
+	  	AND vessel_voyage_number = #{vesselNumber}
+	  	AND work_type = #{workType}	 
+	  	<![CDATA[ AND is_state <> '10']]>
+   </select>
+    <!-- 导出所有作业记录 -->
+   <select id="exportAllHpWorkRecord" resultType="WorkRecordVo" parameterType="WorkRecordVo">
+		SELECT 
+		 	wr.id 					AS 'id',
+		 	wr.seq_no				AS 'seqNo',
+		 	wr.contaid				AS 'contaid',
+		 	wr.update_contaid       AS 'updateContaid',
+			wr.crane_num 			AS 'craneNum',
+			wr.is_state				AS 'state',
+			wr.work_type 			AS 'workType',	
+			wr.container_type 		AS 'containerType',		
+			wr.update_contaid 		AS 'updateContaid',
+			wr.update_top_plate 	AS 'updateTopPlate',
+			wr.iso 					AS 'iso',	
+			wr.passtime  			AS 'passTime'
+	    FROM work_record_huangpu wr
+	    WHERE 1 = 1
+	   <!--  <if test="null !=contaid and ''!=contaid">
+	  		AND wr.contaid LIKE "%"#{contaid}"%"
+	  	</if> -->
+	    <if test="null !=contaid and ''!=contaid">
+	  		AND UPPER(update_contaid) LIKE UPPER(CONCAT('%',#{contaid},'%'))
+	  	</if>
+	    <if test="null !=craneNum and ''!=craneNum">
+	  		AND wr.crane_num = #{craneNum}
+	  	</if> 
+	  	<if test="null !=workType and -1!=workType">
+	  		AND wr.work_type = #{workType}
+	  	</if>
+	  	<if test="null !=state and -1!=state">
+	  		AND wr.is_state = #{state}
+	  	</if>
+	  	<if test="null !=containerType and -1!=containerType">
+	  		AND wr.container_type = #{containerType}
+	  	</if>
+	  	<if test="null !=updateTopPlate and ''!=updateTopPlate">
+	  		AND wr.update_top_plate = #{updateTopPlate}
+	  	</if>
+	  	<if test="null !=passTime and ''!=passTime and null !=createTime and ''!=createTime">
+	  		AND wr.passtime BETWEEN #{passTime} AND #{createTime}
+	  	</if>
+	  	ORDER BY wr.id DESC
+	  	
+	  	<!-- wr.top_plate			AS 'topPlate',<if test="null !=topPlate and -1!=topPlate">
+	  		AND wr.topPlate = #{topPlate}
+	  	</if> -->
+   </select>
+   
+	<!-- 更新状态 -->
+   <update id="updateHpWorkRecordStateById" parameterType="WorkRecordVo">
+   		UPDATE work_record_huangpu
+            SET
+                is_state=#{state},
+                tally_clerk=#{tallyClerk}
+            WHERE 
+            	id = #{id} 
+   </update>
+   
+    <!-- 删除门机作业记录 -->
+	<delete id="deleteHpMjWorkRecordById" parameterType="int">
+		DELETE FROM work_record_huangpu WHERE id = #{id}	
+	</delete>
+	<!-- 删除门机作业记录图片 -->
+	<delete id="deleteHpMjImgByWorkId" parameterType="int">
+		DELETE FROM hp_img_infor WHERE work_id = #{workId}	
+	</delete>
+</mapper>

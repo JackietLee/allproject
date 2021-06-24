@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.bay.BayDao">
+
+
+	<!-- 获取装船作业箱 -->
+	<!-- 2020-9-11更新BAY图只显示理货成功的箱 
+	is_state BETWEEN 0 AND 3
+	-->
+   <select id="getBatchBayInfoList" resultType="net.pingfang.entity.vessel.VesselContainerVo">
+   		<foreach collection="list" item="item" index="index" separator="  UNION ALL">
+	   		SELECT  
+	   			id,
+	   			crane_num 	   			AS 'craneNum',
+	   			vessel_voyage_number	AS 'vesselNumber',
+		  		vessel_code				AS 'vesselCode',
+		  		container_type			AS 'containerType',
+	   			update_contaid 			AS 'containerNumber',
+	   			iso,
+	   			bay_info	   			AS 'stdBay',
+	   			passtime	   			AS 'createTime'
+	   		FROM work_record  
+	   		WHERE 
+	   		vessel_voyage_number = #{item.vesselNumber}
+	   		AND vessel_code = #{item.vesselCode} 
+	   		AND work_type = 0
+	   		AND is_state = '1'
+	        AND 
+	        <foreach collection="item.bayList" item="tem" index="index" separator="  OR" open="(" close=")">
+	        	bay_info LIKE #{tem}"%"
+	        </foreach>
+	        
+	        
+        </foreach>
+   </select>
+   
+   <!-- 获取占位箱 -->
+	<select id="getBatchContainerSeizeSeatList" resultType="net.pingfang.entity.vessel.VesselContainerVo">
+		<foreach collection="list" item="item" index="index" separator="  UNION ALL">
+		  	SELECT 
+	   			container_number			AS 'containerNumber',
+				size_type  					AS 'sizeType', 
+				container_type				AS 'containerType',
+				job_type					AS 'jobType',
+				weight,		
+				bay							AS 'stdBay',
+				row							AS 'stdRow',
+				tier						AS 'stdTier',
+				vessel_voyage_number	AS 'vesselNumber',
+		  		vessel_code				AS 'vesselCode',
+				vessel_position				AS 'vesselPosition'			
+	   		FROM tos_vessel_container_seize_seat  
+	   		WHERE
+		  		vessel_voyage_number = #{item.vesselNumber}
+		  	AND vessel_code = #{item.vesselCode} 
+            AND bay 
+	        <foreach collection="item.bayList" item="tem" index="index" separator="," open="IN(" close=")">
+	        	#{tem}
+	        </foreach>
+        </foreach>
+   </select>
+	
+	
+	<!-- 根据船舶艘次号查询BAY总数 -->
+   <select id="getCountBayByVesselNumber" resultType="int" parameterType="String">
+   		SELECT COUNT(id) FROM vessel_bay
+   		WHERE vessel_number = #{vesselNumber}
+   </select>
+   <!-- 根据船舶艘次号删除BAY数据 -->
+	<delete id="deleteBayByVesselNumber" parameterType="String">
+		DELETE FROM vessel_bay WHERE vessel_number = #{vesselNumber}
+	</delete>
+   
+	<!-- 批量插入船图结构数据 -->
+   <insert id="insertVesselBayList" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="java.util.ArrayList">
+   		INSERT INTO vessel_bay 
+		(   
+			vessel_name,
+			vessel_number, 
+			vessel_code,
+			bay,
+			row,
+			tier,
+  			tally_clerk
+		)VALUES
+		<foreach collection="list" item="emp" separator=",">
+			(
+			  #{emp.vesselName}, 
+			  #{emp.vesselNumber},
+			  #{emp.vesselCode},
+			  #{emp.bay},
+			  
+			  #{emp.row},
+			  #{emp.tier},
+			  #{emp.tallyClerk}	  
+			)   
+		</foreach>	
+   </insert>
+   
+</mapper>

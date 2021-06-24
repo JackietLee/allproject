@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.vessel.VesselContainerDao">
+	<!-- 分页获取所有船舶集装箱 -->
+   <select id="getPageVesselContainerList" resultType="net.pingfang.entity.vessel.VesselContainerVo" parameterType="java.util.Map">
+	 	SELECT 
+			id,				
+			container_number 			AS 'containerNumber',
+			size_type  					AS 'sizeType', 
+			container_status  			AS 'containerStatus',
+			bill_number 				AS 'billNumber',
+			container_type				AS 'containerType',
+			job_type					AS 'jobType',
+			operator_code				AS 'operatorCode',
+			stuffing_status				AS 'stuffingStatus',
+			trade_type					AS 'tradeType',
+			weight						AS 'weight',
+			transfer_type				AS 'transferType',
+			port_of_loading				AS 'portLoading',
+			port_of_discharge			AS 'portDischarge',
+			port_of_destination			AS 'portDestination',
+			truck_name					AS 'truckName',
+			<!-- std_bay						AS 'stdBay',
+			std_row						AS 'stdRow',
+			std_tier					AS 'stdTier' -->	
+			bay							AS 'stdBay',
+			row							AS 'stdRow',
+			tier						AS 'stdTier'			
+		FROM tos_vessel_container 
+		WHERE 1 = 1
+		<if test="null !=vesselContainer.vesselNumber and ''!=vesselContainer.vesselNumber">
+	  		AND vessel_voyage_number = #{vesselContainer.vesselNumber}
+	  	</if> 
+		<if test="null !=vesselContainer.containerNumber and ''!=vesselContainer.containerNumber">
+	  		AND container_number = #{vesselContainer.containerNumber}
+	  	</if> 
+	  	<if test="null !=cStatus">
+	  		AND container_status in
+	  		<foreach collection="cStatus" item="item" index="index" open="(" close=")" separator=",">
+            	#{item}
+        	</foreach>
+	  	</if>
+	  	<if test="null !=jType">
+	  		AND job_type in
+	  		<foreach collection="jType" item="item" index="index" open="(" close=")" separator=",">
+            	#{item}
+        	</foreach>
+	  	</if>
+	  	LIMIT #{pageVo.startRow},#{pageVo.pageSize}	   
+   </select>
+   <!-- 获取所有船舶信息记录总数 -->
+   <select id="getCountVesselContainer" resultType="int" parameterType="java.util.Map">
+   		SELECT COUNT(id) FROM tos_vessel_container
+   		WHERE 1 = 1
+   		<if test="null !=vesselContainer.vesselNumber and ''!=vesselContainer.vesselNumber">
+	  		AND vessel_voyage_number = #{vesselContainer.vesselNumber}
+	  	</if> 
+		<if test="null !=vesselContainer.containerNumber and ''!=vesselContainer.containerNumber">
+	  		AND container_number = #{vesselContainer.containerNumber}
+	  	</if> 
+	  	<if test="null !=cStatus">
+	  		AND container_status in
+	  		<foreach collection="cStatus" item="item" index="index" open="(" close=")" separator=",">
+            	#{item}
+        	</foreach>
+	  	</if>
+	  	<if test="null !=jType">
+	  		AND job_type in
+	  		<foreach collection="jType" item="item" index="index" open="(" close=")" separator=",">
+            	#{item}
+        	</foreach>
+	  	</if>
+   </select>
+   <!-- 获取车顶下拉列表 -->
+    <select id="getTruckInfoList" resultType="net.pingfang.entity.vessel.TruckInfoVo">
+   		SELECT 
+   			id,
+   			truck_name		 AS 'truckNumber'
+   		FROM tos_truck  
+   </select>
+   
+    <!-- 获取集装箱在船上的位置 -->
+    <select id="getVesselContainerList" resultType="net.pingfang.entity.vessel.VesselContainerVo" parameterType="net.pingfang.entity.vessel.VesselContainerVo">
+   		SELECT 
+   			port_of_destination			AS 'portDestination',
+			port_of_discharge			AS 'portDischarge',
+			port_of_loading				AS 'portLoading',
+			vessel_position				AS 'vesselPosition',
+			stuffing_status				AS 'stuffingStatus',
+			size_type					AS 'sizeType',
+			weight
+   		FROM tos_vessel_container  
+   		WHERE 1=1
+		<if test="null !=vesselNumber and ''!=vesselNumber">
+	  		AND vessel_voyage_number = #{vesselNumber}
+	  	</if> 
+		<if test="null !=vesselCode and ''!=vesselCode">
+	  		AND vessel_code = #{vesselCode}
+	  	</if> 
+	  	<if test="null !=containerNumber and ''!=containerNumber">
+	  		AND container_number = #{containerNumber}
+	  	</if>
+	  	<if test="null !=stdBay and ''!=stdBay">
+	  		AND bay = #{stdBay}
+	  	</if>
+   </select>
+   
+   <!-- 获取装船作业箱  2020-04-20
+   <select id="getWorkRecordContainerList" resultType="net.pingfang.entity.vessel.VesselContainerVo">
+   		SELECT  
+   			crane_num 	   AS 'craneNum',
+   			update_contaid AS 'containerNumber',
+   			iso,
+   			bay_info	   AS 'stdBay'	
+   		FROM work_record  
+   		WHERE 
+   		vessel_voyage_number = #{vesselNumber}
+   		AND vessel_code = #{vesselCode} 
+   		AND work_type = 0
+   		AND (is_state = '0' or is_state = '1' OR is_state = '2')
+   		<foreach collection="list" item="item" index="index" open="AND(" close=")" separator="OR">
+            	bay_info LIKE #{item.stdBay}"%"
+        </foreach>
+   </select>
+   -->
+   <!-- 获取装船作业箱 --><!-- 2020-9-11更新BAY图只显示理货成功的箱 
+	is_state BETWEEN 0 AND 3
+	-->
+   <select id="getWorkRecordContainerList" resultType="net.pingfang.entity.vessel.VesselContainerVo">
+   		<foreach collection="list" item="item" index="index" separator="  UNION ALL">
+	   		SELECT  
+	   			id,
+	   			crane_num 	   	AS 'craneNum',
+	   			container_type	AS 'containerType',
+	   			update_contaid 	AS 'containerNumber',
+	   			iso,
+	   			bay_info	   	AS 'stdBay',
+	   			passtime	   	AS 'createTime'
+	   		FROM work_record  
+	   		WHERE 
+	   		vessel_voyage_number = #{vesselNumber}
+	   		AND vessel_code = #{vesselCode} 
+	   		AND work_type = 0
+	   		AND is_state = '1'
+	        AND bay_info LIKE #{item.stdBay}"%"
+        </foreach>
+   </select>
+   
+   
+   <select id="getContainerList" resultType="net.pingfang.entity.vessel.VesselContainerVo">
+   		SELECT 
+   			container_number			AS 'containerNumber',
+   			cargo_type					AS 'cargoType',
+			size_type  					AS 'sizeType', 
+			container_type				AS 'containerType',
+			job_type					AS 'jobType',
+			weight,		
+			bay							AS 'stdBay',
+			row							AS 'stdRow',
+			tier						AS 'stdTier',
+			vessel_position				AS 'vesselPosition'	
+   		FROM tos_vessel_container  
+   		WHERE 
+			vessel_voyage_number = #{vesselNumber} 
+		AND vessel_code = #{vesselCode} 
+	  	AND container_number IN
+	  	<foreach collection="list" item="item" index="index" open="(" close=")" separator=",">
+            	#{item.containerNumber}
+        </foreach>
+	</select>
+   
+   <!-- 获取占位箱 -->
+	<select id="getContainerSeizeSeatList" resultType="net.pingfang.entity.vessel.VesselContainerVo">
+		<foreach collection="list" item="item" index="index" separator="  UNION ALL">
+		  	SELECT 
+	   			container_number			AS 'containerNumber',
+				size_type  					AS 'sizeType', 
+				container_type				AS 'containerType',
+				job_type					AS 'jobType',
+				weight,		
+				bay							AS 'stdBay',
+				row							AS 'stdRow',
+				tier						AS 'stdTier',
+				vessel_position				AS 'vesselPosition'			
+	   		FROM tos_vessel_container_seize_seat  
+	   		WHERE 1=1
+			<if test="null !=vesselNumber and ''!=vesselNumber">
+		  		AND vessel_voyage_number = #{vesselNumber}
+		  	</if> 
+			<if test="null !=vesselCode and ''!=vesselCode">
+		  		AND vessel_code = #{vesselCode}
+		  	</if> 
+            AND	bay = #{item.stdBay}
+        </foreach>
+   </select>
+   
+    <!-- 查询车顶号是否存在 -->
+    <select id="getCountTruckNumber" resultType="int"  parameterType="String">
+   		SELECT  COUNT(id) FROM tos_truck  WHERE truck_name = #{truckNumber}
+   </select>
+   
+   
+   <!-- 更新贝位 -->
+   <!-- 2020-03-09 更新
+   <update id="updateBayInfo" parameterType="net.pingfang.entity.vessel.VesselContainerVo">
+   		UPDATE tos_vessel_container
+		SET
+			bay = #{stdBay},	  
+			row = #{stdRow},	  
+			tier = #{stdTier}
+		WHERE vessel_voyage_number = #{vesselNumber}
+			  AND container_number = #{containerNumber}
+			  AND vessel_code = #{vesselCode}
+   </update>
+   --> 
+   <!-- 获取所有作业记录总数 -->
+   <!-- 2020-03-09
+   <select id="getCountContainer" resultType="int" parameterType="net.pingfang.entity.vessel.VesselContainerVo">
+   		SELECT COUNT(id) FROM tos_vessel_container
+   		WHERE 
+			vessel_voyage_number = #{vesselNumber}
+			AND container_number = #{containerNumber}
+			AND vessel_code = #{vesselCode}  		
+   </select>
+   -->
+</mapper>

@@ -1,0 +1,934 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="net.pingfang.dao.workRecord.WorkRecordDao">
+
+	<!-- 获取所有作业记录总数 -->
+   <select id="getCountWorkRecord" resultType="int" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		SELECT COUNT(id) FROM work_record
+   		WHERE 1 = 1
+   		<if test="null !=contaid and ''!=contaid">
+	  		AND UPPER(update_contaid) LIKE UPPER(CONCAT('%',#{contaid},'%'))
+	  	</if>
+	  	<if test="null !=craneNum and ''!=craneNum">
+	  		AND crane_num = #{craneNum}
+	  	</if> 
+	  	<if test="null !=workType and -1!=workType">
+	  		AND work_type = #{workType}
+	  	</if>
+	  	<if test="null !=containerType and 0 !=containerType">
+	  		 <choose>
+		      <when test="containerType == 100">
+		        AND container_type = 0
+		      </when>
+		      <otherwise>
+		        AND container_type = #{containerType}
+		      </otherwise>
+		    </choose>
+	  	</if>
+	  	<if test="null !=state and ''!=state">
+	  		AND is_state = #{state}
+	  	</if> 
+	  	<if test="null !=updateTopPlate and ''!=updateTopPlate">
+	  		AND update_top_plate = #{updateTopPlate}
+	  	</if>
+	  	<if test="null !=iso and ''!=iso">
+	  		AND iso = #{iso}
+	  	</if>
+	  	<if test="null !=passTime and ''!=passTime and null !=createTime and ''!=createTime">
+	  		AND passtime BETWEEN #{passTime} AND #{createTime}
+	  	</if>
+   </select>
+	<!-- 获取所有作业记录 -->
+   <select id="getAllWorkRecordList" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="java.util.Map">
+	  SELECT 
+	     	wr.id 					AS 'id',
+	     	wr.seq_no				AS 'seqNo',
+			wr.crane_num 			AS 'craneNum',
+			wr.vessel_name_cn 		AS 'vesselNameCn',
+			wr.work_type 			AS 'workType',	
+			wr.container_type 		AS 'containerType',		
+			wr.update_contaid 		AS 'updateContaid',
+			wr.update_top_plate 	AS 'updateTopPlate',
+			wr.iso 					AS 'iso',	
+			wr.bay_info				AS 'bayInfo',
+			wr.lane_num				AS 'laneNum',		
+			wr.is_state				AS 'state',
+			wr.stuffing_status		AS 'stuffingStatus',
+			wr.tally_clerk			AS 'tallyClerk',
+			wr.passtime  			AS 'passTime'
+	    FROM work_record wr
+	    WHERE 1 = 1
+	  	<if test="null !=workRecordVo.contaid and ''!=workRecordVo.contaid">
+	  		AND UPPER(update_contaid) LIKE UPPER(CONCAT('%',#{workRecordVo.contaid},'%'))
+	  	</if>	
+	  	<if test="null !=workRecordVo.craneNum and ''!=workRecordVo.craneNum">
+	  		AND wr.crane_num = #{workRecordVo.craneNum}
+	  	</if> 
+	  	<if test="null !=workRecordVo.workType and -1!=workRecordVo.workType">
+	  		AND wr.work_type = #{workRecordVo.workType}
+	  	</if>
+	  	<if test="null !=workRecordVo.containerType and 0 !=workRecordVo.containerType">
+	  		 <choose>
+		      <when test="workRecordVo.containerType == 100">
+		        AND wr.container_type = 0
+		      </when>
+		      <otherwise>
+		        AND wr.container_type = #{workRecordVo.containerType}
+		      </otherwise>
+		    </choose>
+	  	</if>
+	  	<if test="null !=workRecordVo.state and ''!=workRecordVo.state">
+	  		AND wr.is_state = #{workRecordVo.state}
+	  	</if>
+	  	<if test="null !=workRecordVo.updateTopPlate and ''!=workRecordVo.updateTopPlate">
+	  		AND wr.update_top_plate = #{workRecordVo.updateTopPlate}
+	  	</if>
+	  	<if test="null !=workRecordVo.iso and ''!=workRecordVo.iso">
+	  		AND wr.iso = #{workRecordVo.iso}
+	  	</if>
+	  	<if test="null !=workRecordVo.passTime and ''!=workRecordVo.passTime and null !=workRecordVo.createTime and ''!=workRecordVo.createTime">
+	  		AND wr.passtime BETWEEN #{workRecordVo.passTime} AND #{workRecordVo.createTime}
+	  	</if>  	
+	  	ORDER BY wr.id DESC
+	  	LIMIT #{pageVo.startRow},#{pageVo.pageSize}
+   </select>
+   <!-- AND DATE_FORMAT(wr.passtime, '%Y-%m-%d %h:%i') BETWEEN #{workRecordVo.passTime} AND #{workRecordVo.createTime} -->
+   
+   <!-- 插入一条作业记录 -->
+   <insert id="insertWorkRecord" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		INSERT INTO work_record 
+		(     
+		  seq_no, 
+		  area_num,
+		  crane_num,
+		  vessel_name_cn,
+		  vessel_voyage_number,
+		  vessel_code,
+		  lane_num,
+		  work_type,
+		  plate,
+		  top_plate,
+		  update_top_plate,
+		  container_type,
+		  orderid,
+		  contaid,
+		  update_contaid,
+		  iso,
+		  ischeck,
+		  damaged,
+		  door_dir,
+		  door_lock,
+		  bay_info,
+		  is_state,
+		  conta_weight,
+		  point_x,
+		  point_y,
+		  passtime,
+		  tally_clerk,
+		  stevedore_id,
+		  ship_position,
+		  bill_number,
+		  size_type,
+		  is_transfer,
+		  cargo_type,
+		  seal_number,
+		  trade_type
+		)VALUES(
+		  #{seqNo}, 
+		  #{areaNum},
+		  #{craneNum},
+		  #{vesselNameCn},
+		  #{vesselNumber},
+		  #{vesselCode},
+		  #{laneNum},
+		  #{workType},
+		  #{plate},
+		  #{topPlate},
+		  #{updateTopPlate},
+		  #{containerType},
+		  #{orderid},
+		  #{contaid},
+		  #{updateContaid},
+		  #{iso},
+		  #{ischeck},
+		  #{damaged},
+		  #{doorDir},
+		  #{doorLock},
+		  #{bayInfo},
+		  #{state},
+		  #{contaWeight},
+		  #{pointX},
+		  #{pointY},
+		  #{passTime},
+		  #{tallyClerk},
+		  #{stevedoreId},
+	      #{shipPosition},
+	      #{billNumber},
+		  #{sizeType},
+		  #{isTransfer},
+		  #{cargoType},
+		  #{sealNumber},
+		  #{tradeType}
+		)   	
+   </insert>
+   
+   
+   <!-- 批量插入一条作业记录 -->
+   <insert id="insertWorkRecordList" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="java.util.ArrayList">
+   		INSERT INTO work_record 
+		(     
+		  seq_no, 
+		  area_num,
+		  crane_num,
+		  vessel_name_cn,
+		  vessel_voyage_number,
+		  vessel_code,
+		  lane_num,
+		  work_type,
+		  plate,
+		  top_plate,
+		  update_top_plate,
+		  container_type,
+		  orderid,
+		  contaid,
+		  update_contaid,
+		  iso,
+		  ischeck,
+		  damaged,
+		  door_dir,
+		  door_lock,
+		  bay,
+		  bay_info,
+		  is_state,
+		  conta_weight,
+		  point_x,
+		  point_y,
+		  passtime,
+		  
+		  vessel_position,
+		  port_loading,
+		  port_discharge,
+		  port_destination,
+		  stuffing_status,
+		  danger_signs,
+		  danger_class,
+		  container_class,
+			 
+		  tally_clerk,
+		  stevedore_id,
+		  ship_position,
+	   bill_number,
+	   size_type,
+	   is_transfer,
+	   cargo_type,
+	   seal_number,
+	   trade_type
+		)VALUES
+		<foreach collection="list" item="emp" separator=",">
+			(
+			  #{emp.seqNo}, 
+			  #{emp.areaNum},
+			  #{emp.craneNum},
+			  #{emp.vesselNameCn},
+			  #{emp.vesselNumber},
+			  #{emp.vesselCode},
+			  #{emp.laneNum},
+			  #{emp.workType},
+			  #{emp.plate},
+			  #{emp.topPlate},
+			  #{emp.updateTopPlate},
+			  #{emp.containerType},
+			  #{emp.orderid},
+			  #{emp.contaid},
+			  #{emp.updateContaid},
+			  #{emp.iso},
+			  #{emp.ischeck},
+			  #{emp.damaged},
+			  #{emp.doorDir},
+			  #{emp.doorLock},
+			  #{emp.bay},
+			  #{emp.bayInfo},
+			  #{emp.state},
+			  #{emp.contaWeight},
+			  #{emp.pointX},
+			  #{emp.pointY},
+			  #{emp.passTime},
+			  
+			  #{emp.vesselPosition},
+			  #{emp.portLoading},
+			  #{emp.portDischarge},
+			  #{emp.portDestination},
+			  #{emp.stuffingStatus},
+			  #{emp.dangerSigns},
+			  #{emp.dangerClass},
+			  #{emp.containerClass},
+			 
+			  #{emp.tallyClerk},
+			  #{emp.stevedoreId},
+		  	  #{emp.shipPosition},
+			#{emp.billNumber},
+			#{emp.sizeType},
+			#{emp.isTransfer},
+			#{emp.cargoType},
+			#{emp.sealNumber},
+			#{emp.tradeType}
+			)   
+		</foreach>	
+   </insert>
+   
+   <!-- 插入一条残损信息记录 -->
+	<insert id="insertDamageInforRecord" parameterType="java.util.ArrayList">
+		INSERT INTO damaged_Infor_Record(   
+		  work_id,
+		  seq_no,
+		  container_number,
+		  damaged_type_id,
+		  position_id,
+		  trust,
+		  create_name
+		)
+		VALUES
+      <foreach collection="list" item="emp" separator=",">
+	      (	#{emp.workId},
+	      	#{emp.seqNo},
+	      	#{emp.containerNumber},
+	      	#{emp.damagedTypeId},	       
+	        #{emp.positionId},
+	        #{emp.trust},
+	        #{emp.createName}
+	       )
+      </foreach>
+	</insert>
+	<!-- 插入一条图片信息记录 -->
+	<insert id="insertImgInfo" parameterType="java.util.ArrayList">
+		INSERT INTO img_infor(   
+		  work_id,
+		  seq_no,
+		  location,			
+		  snap_img_type,		
+		  img_num ,			
+		  img_path_name,
+		  img_dect_rect
+		)
+		VALUES
+      <foreach collection="list" item="emp" separator=",">
+      (#{emp.workId},#{emp.seqNo},#{emp.location},#{emp.snapImgType},
+       #{emp.imgNum},#{emp.imgPathName},#{emp.imgDectRect})
+      </foreach>
+	</insert>
+	
+	<!-- 根据seqNo任务编号获取所有作业记录总数 -->
+   <select id="getCountWorkRecordBySeqNo" resultType="int" parameterType="String">
+   		SELECT COUNT(id) FROM work_record WHERE seq_no = #{seqNo}
+   </select>	
+	<!-- 删除一条作业记录 -->
+	<delete id="deletetWorkRecord" parameterType="String">
+		DELETE FROM work_record WHERE seq_no = #{seqNo}	
+	</delete>
+	<delete id="deletetWorkRecordById" parameterType="int">
+		DELETE FROM work_record WHERE id = #{id}	
+	</delete>
+	<!-- 删除一条残损信息记录 -->
+	<delete id="deleteDamageInforRecord" parameterType="String">
+		DELETE FROM damaged_Infor_Record WHERE seq_no = #{seqNo}	
+	</delete>
+	<delete id="deleteDamageInforByWorkId" parameterType="int">
+		DELETE FROM damaged_Infor_Record WHERE work_id = #{workId}	
+	</delete>
+	<!-- 删除一条图片信息记录 -->
+	<delete id="deleteImgInfo" parameterType="String">
+		DELETE FROM img_infor WHERE seq_no = #{seqNo}	
+	</delete>
+	
+   <!-- 根据id查询作业记录信息  2020-03-07更新 -->
+   <select id="getWorkRecordById" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="int">   		
+	  SELECT
+	     	wr.id 					AS 'id',
+		  	wr.seq_no 				AS 'seqNo',		    	 
+			wr.crane_num 			AS 'craneNum',
+			wr.vessel_name_cn		AS 'vesselNameCn',
+			wr.vessel_voyage_number AS 'vesselNumber',
+			wr.vessel_code 			AS 'vesselCode',
+			wr.lane_num				AS 'laneNum',
+			wr.work_type 			AS 'workType',	
+			wr.top_plate 			AS 'topPlate',
+			wr.update_top_plate 	AS 'updateTopPlate',
+			wr.container_type 		AS 'containerType',
+			wr.update_contaid 		AS 'updateContaid',
+			wr.orderid,
+			wr.iso 					AS 'iso',	
+			wr.bay_info 			AS 'bayInfo',	
+			wr.is_state				AS 'state',		
+			wr.stuffing_status		AS 'stuffingStatus',		
+			wr.conta_weight 		AS 'contaWeight',
+			wr.tally_clerk			AS 'tallyClerk',	
+			wr.stevedore_id			AS 'stevedoreId',
+		  	wr.ship_position		AS	'shipPosition'		
+			wr.passtime             AS 'passTime',
+			wr.createtime			AS 'createTime'
+	    FROM work_record wr
+	    WHERE  
+	    	wr.id = #{id}
+   </select>
+   <!-- 根据id查询作业记录信息  2020-03-07更新 -->
+   <select id="getNewWorkRecordById" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="int">   		
+	  SELECT
+	     	id 					AS 'id',
+			is_state				AS 'state'	
+	    FROM work_record
+	    WHERE  
+	    	id = #{id}
+   </select>
+   
+   <select id="getWorkRecordListById" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="int">   		
+	  SELECT
+	     	wr.id 					AS 'id',
+		  	wr.seq_no 				AS 'seqNo',		
+		  	wr.area_num				AS 'areaNum',    	 
+			wr.crane_num 			AS 'craneNum',
+			wr.vessel_name_cn		AS 'vesselNameCn',
+			wr.vessel_voyage_number AS 'vesselNumber',
+			wr.vessel_code 			AS 'vesselCode',
+			wr.lane_num				AS 'laneNum',
+			wr.work_type 			AS 'workType',	
+			wr.top_plate 			AS 'topPlate',
+			wr.update_top_plate 	AS 'updateTopPlate',
+			wr.container_type 		AS 'containerType',
+			wr.update_contaid 		AS 'updateContaid',
+			wr.orderid,
+			wr.iso 					AS 'iso',
+			wr.damaged				AS 'damaged',
+			wr.bay_info 			AS 'bayInfo',
+			wr.is_state				AS 'state',		
+			wr.stuffing_status		AS 'stuffingStatus',			
+			wr.conta_weight 		AS 'contaWeight',
+			wr.tally_clerk			AS 'tallyClerk',			
+			wr.passtime             AS 'passTime',
+			img.img_path_name 		AS 'imgUrl'
+	    FROM work_record wr
+	    left join img_infor img on wr.seq_no = img.seq_no 
+	    WHERE  
+	    	wr.id = #{id}
+   </select>
+   
+   <!-- 根据作业id查询残损记录信息 -->
+   <select id="getDamageInforRecordByWorkId" resultType="net.pingfang.entity.work.DamageInforRecordVo" parameterType="int">   		
+	 	SELECT  
+			dr.trust		AS 'trust',
+			dt.damaged_type     AS 'damagedType',	
+			dp.position		AS 'position'
+		FROM damaged_Infor_Record dr		
+	  	LEFT JOIN damaged_type dt ON dr.damaged_type_id = dt.id
+		LEFT JOIN damaged_position dp ON dr.position_id = dp.id
+	  	WHERE dr.work_id = #{id}
+   </select>
+   <!-- 根据seqNo查询图片记录信息 -->
+   <select id="getImgInfoBySeqNo" resultType="net.pingfang.entity.work.ImgInfoVo" parameterType="String">   		
+	  SELECT 
+	  	work_id 		  AS 'workId', 
+	  	snap_img_type	  AS 'snapImgType',
+	  	img_path_name 	  AS 'imgPathName',
+	  	img_dect_rect 	  AS 'imgDectRect'
+	  FROM img_infor WHERE seq_no = #{seqNo}
+   </select>
+   
+   <update id="updateBayInfoBySeqNo" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		update work_record SET bay_info = #{bayInfo},bay = #{bayInfo}
+        WHERE seq_no = #{seqNo}
+        AND (contaid = #{updateContaid} OR update_contaid = #{updateContaid})
+        <![CDATA[ AND is_state <> '10']]>
+   </update>
+   
+   <update id="updateBayInfoBySeqNoList" parameterType="java.util.List">
+   		<foreach collection="list" item="bean">
+            update work_record SET bay_info = #{bean.bayInfo},bay = #{bean.bayInfo}
+             WHERE seq_no = #{bean.seqNo} 
+             AND (contaid = #{bean.updateContaid} OR update_contaid = #{bean.updateContaid})
+             <![CDATA[ AND is_state <> '10']]>;
+        </foreach>
+   </update>
+   
+   <update id="updateBayInfoById" >
+   		update work_record SET bay_info = #{bayInfo},update_bay_count = 1
+        WHERE id = #{id}
+   </update>
+   
+   <!-- 导出所有作业记录 -->
+   <select id="exportAllWorkRecord" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="net.pingfang.entity.work.WorkRecordVo">
+	  SELECT 
+	     	id 					AS 'id',
+		  	seq_no 				AS 'seqNo',		    	 
+			crane_num 			AS 'craneNum',
+			work_type 			AS 'workType',	
+			container_type 		AS 'containerType',		
+			update_contaid 		AS 'contaid',
+			iso 				AS 'iso',
+			orderid,
+			update_top_plate    AS 'updateTopPlate',
+			DATE_FORMAT(passtime, '%Y-%m-%d %h:%i') AS 'passTime',
+	  		bill_number as billNumber,
+	   		is_transfer as isTransfer,
+	   		size_type as sizeType,
+	    	cargo_type as cargoType,
+	   		seal_number as sealNumber,
+	   		stuffing_status as stuffingStatus,
+	   		port_destination as portDestination,
+	   		port_discharge as portDischarge,
+	   		bay_info as bayInfo,
+	   		trade_type as tradeType,
+	   		tally_clerk as tallyClerk,
+	   		vessel_name_cn as vesselNameCn
+	    FROM work_record
+	    WHERE 1 = 1
+	    AND vessel_code = #{vesselCode}
+	  	<if test="null !=craneNum and ''!=craneNum">
+	  		AND crane_num = #{craneNum}
+	  	</if> 
+	  	<if test="null !=contaid and ''!=contaid">
+	  		AND contaid LIKE "%"#{contaid}"%"
+	  	</if>	
+	  	<if test="null !=workType and -1!=workType">
+	  		AND work_type = #{workType}
+	  	</if>
+	  	<if test="null !=iso and ''!=iso">
+	  		AND iso = #{iso}
+	  	</if>  	
+	  	<if test="null !=passTime and ''!=passTime and null !=createTime and ''!=createTime">
+	  		AND DATE_FORMAT(passtime, '%Y-%m-%d %h:%i') BETWEEN #{passTime} AND #{createTime}
+	  	</if>
+	  	<if test="null !=updateTopPlate and ''!=updateTopPlate">
+	  		AND update_top_plate = #{updateTopPlate}
+	  	</if>
+	  	ORDER BY id DESC
+   </select>
+   
+   
+   <!-- 作业数据统计 -->
+   <select id="getWorkRecordStatistics" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="net.pingfang.entity.work.WorkRecordVo">
+	  SELECT 
+	     	wr.id AS 'id',
+		  	wr.seq_no AS 'seqNo',		    	 
+			wr.crane_num AS 'craneNum',
+			wr.vessel_voyage_number AS 'vesselNumber',
+			wr.work_type AS 'workType',	
+			wr.container_type AS 'containerType',		
+			wr.contaid AS 'contaid',
+			wr.iso AS 'iso',
+			wr.is_state AS 'state',
+			wr.passtime AS 'passTime'
+	    FROM work_record wr
+	    WHERE 1 = 1
+	  	<if test="null !=vesselNumber and ''!=vesselNumber">
+	  		AND wr.vessel_voyage_number = #{vesselNumber}
+	  	</if> 
+	  	<if test="null !=passTime and ''!=passTime and null !=createTime and ''!=createTime">
+	  		<!--AND DATE_FORMAT(wr.passtime, '%Y-%m-%d %h:%i') BETWEEN #{passTime} AND #{createTime} -->
+	  		AND wr.passtime BETWEEN #{passTime} AND #{createTime}
+	  	</if>
+	  	ORDER BY wr.id DESC
+   </select>
+   
+   <!-- 集装箱表里装箱数量（箱状态 0: 未理货 ，作业类型：LD：装船） -->
+   <select id="getMountStatistics" resultType="int">
+	  SELECT 
+			COUNT(id) FROM tos_vessel_container
+	  WHERE vessel_voyage_number IN
+	  <foreach collection="list" item="bean" index="index" open="(" close=")" separator=",">
+           #{bean.vesselNumber}
+      </foreach>
+	  AND container_status = 0 AND job_type = #{jobType}
+   </select>
+   
+   <!-- 获取残损记录  -->
+   <select id="getDamageInforRecordList" resultType="net.pingfang.entity.work.DamageInforRecordVo">
+	  SELECT work_id AS 'workId',
+	  		trust 
+	  FROM damaged_Infor_Record
+	  WHERE work_id IN
+	  <foreach collection="list" item="bean" index="index" open="(" close=")" separator=",">
+           #{bean.id}
+      </foreach>
+   </select>
+   
+    <!-- 查询已理货数据 -->
+   <select id="getAlreadyWorkRecordList" resultType="net.pingfang.entity.work.WorkRecordVo">
+   		<foreach collection="list" item="item" index="index" separator="  UNION ALL">
+			  SELECT 
+			     	id 					AS 'id',
+				  	seq_no 				AS 'seqNo',		    	 
+					crane_num 			AS 'craneNum',
+					vessel_voyage_number AS 'vesselNumber',
+					work_type 			AS 'workType',	
+					update_contaid 		AS 'updateContaid',
+					bay_info 			AS 'bayInfo',
+					is_state			AS 'state',		
+					iso,
+					damaged,
+					tally_clerk			AS 'tallyClerk',
+					n4_status			AS 'n4Status',
+					passtime 			AS 'passTime'
+			    FROM work_record
+			    WHERE 
+			  	crane_num = #{item.craneNum}
+				AND vessel_voyage_number = #{item.vesselNumber}	
+				<!-- <if test="null !=item.workType">
+					AND work_type = #{item.workType}
+				</if> -->
+				<if test="null !=item.bayList">
+			    	<foreach collection="item.bayList" item="bay" index="index" open="AND (" close=")" separator=" OR ">
+				           bay_info LIKE #{bay}"%"
+				    </foreach>
+			    </if>
+		      				    
+		      	<choose>
+			    	<when test="1 == state">
+			    		AND is_state = '1'
+			    	</when>
+			    	<otherwise>
+			    		AND (is_state = '0' OR is_state = '2' OR is_state = '3')
+			    	</otherwise>
+			    </choose>
+	  	</foreach>
+	  	ORDER BY id DESC
+   </select>
+   
+   <select id="getVesselPositionByVesselNumber" resultType="net.pingfang.entity.vessel.VesselContainerVo">
+   		SELECT 
+   			id,
+   			container_number AS 'containerNumber',
+   			vessel_voyage_number	 AS 'vesselNumber', 
+   			vessel_position			 AS 'vesselPosition'
+   		FROM tos_vessel_container  
+   		WHERE 1 = 1
+   		<foreach collection="list" item="item" index="index" open="AND vessel_voyage_number IN(" close=")" separator=",">
+           #{item.vesselNumber}
+      	</foreach>
+   </select>
+  
+   <!-- 根据作业编号查询已理货数据信息 -->
+   <select id="getAlreadyWorkRecordById" resultType="net.pingfang.entity.work.WorkRecordVo">   		
+	  SELECT
+	     	wr.id 					AS 'id',
+		  	wr.seq_no 				AS 'seqNo',
+		  	wr.area_num				AS 'areaNum',  
+		  	wr.crane_num 			AS 'craneNum',	
+		  	wr.vessel_name_cn		AS 'vesselNameCn',	   	 
+			wr.vessel_voyage_number	AS 'vesselNumber',
+			wr.vessel_code			AS 'vesselCode',
+			wr.work_type 			AS 'workType',	
+			wr.update_top_plate		AS 'updateTopPlate',
+			wr.container_type 		AS 'containerType',
+			wr.orderid,
+			wr.update_contaid 		AS 'updateContaid',
+			wr.bay_info 			AS 'bayInfo',
+			wr.is_state				AS 'state',		
+			wr.stuffing_status		AS 'stuffingStatus',	
+			wr.conta_weight 		AS 'contaWeight',
+			wr.iso 					AS 'iso',
+			wr.damaged,
+			wr.door_dir				AS 'doorDir',
+			wr.lane_num				AS 'laneNum',
+			wr.tally_clerk			AS 'tallyClerk',
+			wr.stevedore_id			AS 'stevedoreId',
+		  	wr.ship_position		AS	'shipPosition',		
+			wr.passtime             AS 'passTime',
+			wr.createtime			AS 'createTime',
+	        wr.bill_number			AS 'billNumber',
+	        wr.size_type			AS 'sizeType',
+	        wr.is_transfer			AS 'isTransfer',
+	        wr.cargo_type			AS 'cargoType',
+	        wr.seal_number			AS 'sealNumber',
+	        wr.trade_type			AS 'tradeType',
+	   		wr.n4_status            AS 'n4Status'
+			<!--  LEFT(wr.passtime,20)	AS 'passTime'	-->		
+	    FROM work_record wr
+	    WHERE 1 = 1
+	    <if test="null !=id and id>0">
+	  		AND wr.id = #{id}
+	  	</if>
+	  	<if test="null !=craneNum and ''!=craneNum">
+	  		AND wr.crane_num = #{craneNum}
+	  	</if>
+	  	<if test="null !=vesselNumber and ''!=vesselNumber">
+	  		AND wr.vessel_voyage_number = #{vesselNumber}
+	  	</if>
+	  	<if test="null !=updateContaid and ''!=updateContaid">
+	  		AND wr.update_contaid = #{updateContaid}
+	  	</if>
+	  	LIMIT 0,1	    	
+   </select>
+
+   <!-- 已理货数据二次提交更新 -->
+   <update id="updateWorkRecordById" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		UPDATE work_record
+         SET
+         	update_top_plate = #{updateTopPlate},
+         	<if test="updateTopPlateCount >0">
+         		update_top_plate_count = #{updateTopPlateCount},
+		  	</if>
+         	<if test="null !=vesselNumber and ''!=vesselNumber">
+         		vessel_name_cn = #{vesselNameCn},
+		  		vessel_voyage_number = #{vesselNumber},
+		  		vessel_code = #{vesselCode},
+		  	</if>
+		  	update_contaid = #{updateContaid},
+         	<if test="updateContaidCount >0">
+         		update_contaid_count = #{updateContaidCount},
+		  	</if>
+         	iso =  #{iso},
+         	damaged = #{damaged},         	
+         	<if test="null !=bayInfo and ''!=bayInfo">
+		  		bay_info = #{bayInfo},
+		  	</if> 
+		  	<if test="updateBayCount >0">
+         		update_bay_count = #{updateBayCount},
+		  	</if>         	
+		  	orderid = #{orderid},	  	
+         	<if test="null !=state and ''!=state">
+		  		is_state = #{state},
+		  	</if> 
+		  	 work_type = #{workType},
+		  	 container_type = #{containerType},		  	 
+		  	 vessel_position = #{vesselPosition},
+			 port_loading = #{portLoading},
+			 port_discharge = #{portDischarge},
+			 port_destination = #{portDestination},
+			 stuffing_status = #{stuffingStatus},
+			 danger_signs = #{dangerSigns},
+			 danger_class = #{dangerClass},
+			 container_class = #{containerClass},
+		  	
+         	 tally_clerk = #{tallyClerk},
+         	 stevedore_id = #{stevedoreId},
+		   <if test="null !=state and ''!=state">
+			   bill_number = #{billNumber},
+		   </if>
+		   <if test="null !=state and ''!=state">
+			   size_type = #{sizeType},
+		   </if>
+		   <if test="null !=state and ''!=state">
+			   is_transfer = #{isTransfer},
+		   </if>
+		   <if test="null !=state and ''!=state">
+			   cargo_type = #{cargoType},
+		   </if>
+		   seal_number = #{sealNumber},
+		   <if test="null !=state and ''!=state">
+			   trade_type = #{tradeType},
+		   </if>
+		  	ship_position = #{shipPosition}
+         WHERE id =  #{id}
+   </update>
+   
+   <!-- 更新历史数据 -->
+   <update id="updateHistoricalWorkRecord" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		UPDATE work_record
+         SET
+         	vessel_name_cn =  #{vesselNameCn},
+         	vessel_voyage_number = #{vesselNumber},
+         	vessel_code = #{vesselCode},
+         	update_contaid = #{updateContaid},
+         	lane_num = #{laneNum},
+         	iso =  #{iso},
+         	damaged = #{damaged},
+         	container_type = #{containerType},
+         	orderid = #{orderid},
+         	bay_info = #{bayInfo},
+         	update_top_plate = #{updateTopPlate},
+         	<if test="null !=state and ''!=state">
+		  		is_state = #{state},
+		  	</if> 
+         	tally_clerk = #{tallyClerk}
+         WHERE id =  #{id}
+   </update>
+   
+   <!--  -->
+   <select id="getWorkRecordData" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="net.pingfang.entity.work.WorkRecordVo">   		
+	  	SELECT
+	  		id,
+	  		seq_no 				AS 'seqNo',	
+	  		work_type			AS 'workType',
+	     	update_contaid		AS 'updateContaid',
+	     	bay_info 			AS 'bayInfo',
+	     	container_type 		AS 'containerType',
+			orderid,
+			point_x		AS 'pointX',
+			point_y		AS 'pointY'
+	    FROM work_record
+	    WHERE 
+	    	crane_num = #{craneNum}
+	    AND vessel_voyage_number = #{vesselNumber}
+	    AND work_type = #{workType}
+	    AND LENGTH(bay_info) = 7
+	    AND is_state = '1'
+	<![CDATA[  AND passtime < #{passTime} ]]>
+	    ORDER BY id DESC
+	    LIMIT 0,2
+   </select>
+   <!-- 更新X,Y坐标 -->
+   <update id="updateWorkRecordXY" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		UPDATE work_record
+            SET
+                point_x=#{pointX},
+                point_y=#{pointY}
+            WHERE 
+            	crane_num = #{craneNum} 
+            AND seq_no = #{seqNo} 
+   </update>
+   <!-- 2020-08-18
+   <select id="getCountBay" parameterType="net.pingfang.entity.work.WorkRecordVo" resultType="int">
+   		SELECT COUNT(id) FROM work_record 
+   		WHERE 
+   			crane_num = #{craneNum} 
+   		AND vessel_voyage_number = #{vesselNumber} 
+   		AND bay_info = #{bayInfo}
+   </select>
+    -->
+    <select id="getCountBay" parameterType="net.pingfang.entity.work.WorkRecordVo" resultType="int">
+   		SELECT COUNT(id) FROM work_record 
+   		WHERE 
+   			 vessel_voyage_number = #{vesselNumber} 
+   		AND bay_info = #{bayInfo}
+   		<![CDATA[ AND is_state <> '10']]>
+   </select>
+   <select id="getNewCountBay" resultType="int">
+   		SELECT COUNT(id) FROM work_record 
+   		WHERE 
+   			 vessel_voyage_number = #{vesselNumber} 
+   		AND bay_info IN
+   		<foreach collection="list" item="emp" open="(" separator="," close=")">
+	      #{emp}
+      	</foreach>
+   		<![CDATA[ AND is_state <> '10']]>
+   </select>
+   
+   <!-- 更新状态 -->
+   <update id="updateWorkRecordState" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		UPDATE work_record
+            SET
+                is_state=#{state},
+                tally_clerk=#{tallyClerk}
+            WHERE 
+            	crane_num = #{craneNum} 
+            AND seq_no = #{seqNo} 
+   </update>
+   
+   <!-- 根据seqNo任务编号获取作业记录 -->
+   <select id="getWorkRecordBySeqNo" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="String">
+   		SELECT 
+	     	id 					AS 'id',
+		  	seq_no 				AS 'seqNo',
+		  	crane_num 			AS 'craneNum',		
+		  	contaid 			AS 'contaid',	 
+		  	update_contaid 		AS 'updateContaid',
+		  	container_type 		AS 'containerType',	 
+		  	iso 				AS 'iso',
+		  	damaged,
+		  	bay_info 			AS 'bayInfo',  
+		  	passtime            AS 'passTime'
+	    FROM work_record 
+	    WHERE seq_no = #{seqNo}
+   </select>
+   
+   <!-- 根据seqNo任务编号获取作业记录Id -->
+   <select id="getWorkRecordId" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="String">
+   		SELECT 
+	     	id  	 
+	    FROM work_record 
+	    WHERE seq_no = #{seqNo}
+	    LIMIT	0,1
+   </select>
+   
+   <!-- 更新图片 -->
+   <update id="updateImgInforBySeqNo">
+   		UPDATE img_infor
+            SET
+                work_id=#{workId}
+            WHERE 
+            	seq_no = #{seqNo} 
+   </update>
+   
+   
+    <select id="getCountRecord" resultType="int" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		SELECT COUNT(id) FROM work_record
+   		WHERE 
+	  		UPPER(update_contaid) = UPPER(#{contaid})
+	  	AND vessel_voyage_number = #{vesselNumber}
+	  	AND work_type = #{workType}	 	   
+	  	<![CDATA[ AND is_state <> '10']]>
+   </select>
+   <!--  2020-12-15
+   <select id="getRecord" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		SELECT 
+   			id,
+   			seq_no		AS 'seqNo',
+   			bay_info	AS 'bayInfo'
+   		FROM work_record
+   		WHERE 
+	  		UPPER(update_contaid) = UPPER(#{contaid})
+	  	AND vessel_voyage_number = #{vesselNumber}
+	  	AND work_type = #{workType}	 
+	  	<![CDATA[ AND is_state <> '10']]>
+   </select>
+   -->
+   <!-- 2020-12-15 -->
+   <select id="getRecord" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="net.pingfang.entity.work.WorkRecordVo">
+   		SELECT 
+   			id,
+   			seq_no		AS 'seqNo',
+   			bay_info	AS 'bayInfo'
+   		FROM work_record
+   		WHERE 
+	  		UPPER(update_contaid) = UPPER(#{contaid})
+	  	AND vessel_voyage_number = #{vesselNumber}
+	  	AND work_type = #{workType}	 
+	  	 AND is_state = '1'
+   </select>
+   
+   <select id="getWorkRecord" resultType="net.pingfang.entity.work.WorkRecordVo">
+		SELECT
+   		 	id 					AS 'id',
+		  	seq_no 				AS 'seqNo',
+		  	area_num				AS 'areaNum',  
+		  	crane_num 			AS 'craneNum',	
+		  	vessel_name_cn		AS 'vesselNameCn',	   	 
+			vessel_voyage_number	AS 'vesselNumber',
+			work_type 			AS 'workType',	
+			update_top_plate		AS 'updateTopPlate',
+			container_type 		AS 'containerType',
+			orderid,
+			update_contaid 		AS 'updateContaid',
+			bay_info 			AS 'bayInfo',
+			is_state				AS 'state',		
+			conta_weight 		AS 'contaWeight',
+			iso 					AS 'iso',
+			damaged,
+			door_dir				AS 'doorDir',
+			lane_num				AS 'laneNum',
+			tally_clerk			AS 'tallyClerk',
+			stevedore_id			AS 'stevedoreId',
+		  	ship_position		AS	'shipPosition',		
+			passtime             AS 'passTime',
+			createtime			AS 'createTime'
+	    FROM work_record
+   		WHERE 
+	  		vessel_voyage_number = #{vesselNumber}
+	  	AND UPPER(update_contaid) IN 
+	  		<foreach collection="list" item="emp" open="(" separator="," close=")">
+		      UPPER(#{emp.updateContaid})
+	      	</foreach>
+	  	AND is_state = '3' 
+   </select>
+   
+   <!-- 更新状态 -->
+   <update id="updateWorkRecord" parameterType="java.util.List">
+   		<foreach collection="list" item="bean">
+            update work_record SET is_state = #{bean.state}
+             WHERE vessel_voyage_number = #{bean.vesselNumber} 
+             AND (contaid = #{bean.updateContaid} OR update_contaid = #{bean.updateContaid});
+        </foreach>
+   </update>
+   
+   
+</mapper>

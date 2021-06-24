@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.vessel.DamagedInforRecordDao">
+    <!--   获取所有残损信息 -->
+   <select id="getDamageInforRecordList" resultType="net.pingfang.entity.work.DamageInforRecordVo" parameterType="net.pingfang.entity.work.DamageInforRecordVo">
+	 	SELECT 
+			COUNT(dr.id) as 'id',
+			dr.container_number AS 'containerNumber'
+		FROM damaged_Infor_Record  dr
+		WHERE 1 = 1
+		<if test="null !=containerNumber and ''!=containerNumber">
+	  		AND UPPER(dr.container_number) = UPPER(#{containerNumber})
+	  	</if>
+	  	<if test="(null !=craneNum and ''!=craneNum) or (null !=vesselNumber and ''!=vesselNumber)">
+	  		AND dr.work_id in(
+				   select id  from `work_record` wr 
+				   WHERE 1 = 1
+				   <if test="null !=craneNum and ''!=craneNum">
+				    	AND UPPER(wr.crane_num) = UPPER(#{craneNum})
+				   </if>
+				   <if test="null !=vesselNumber and ''!=vesselNumber">
+				    	AND wr.vessel_voyage_number = #{vesselNumber} 
+				   </if>
+				)
+	  	</if>
+		GROUP BY dr.container_number
+		ORDER BY dr.work_id DESC
+		LIMIT 0,1000
+   </select> 
+  
+   <!-- 根据作业编号和箱号获取一条残损信息 -->
+    <select id="getDamageInforRecordBySeqNo" resultType="net.pingfang.entity.work.DamageInforRecordVo" parameterType="net.pingfang.entity.work.DamageInforRecordVo">
+   		SELECT 
+			dr.id,
+			dr.work_id				AS 'workId',
+			dr.seq_no				AS 'seqNo',
+			dr.container_number   	AS 'containerNumber',
+			dr.damaged_type_id	 	AS 'damagedTypeId',
+			dr.trust				AS 'trust',
+			dr.position_id			AS 'positionId',
+			dr.damaged_desc			AS 'desc',
+		  	dr.create_name  		AS 'createName',
+		  	dt.damaged_code       	AS 'damagedCode',
+			dt.damaged_type     	AS 'damagedType',
+			dp.code 				AS 'positionCode',	
+			dp.position				AS 'position'	
+		FROM damaged_Infor_Record dr
+		LEFT JOIN damaged_type dt ON dr.damaged_type_id = dt.id
+		LEFT JOIN damaged_position dp ON dr.position_id = dp.id
+   		WHERE dr.seq_no = #{seqNo} AND dr.container_number = #{containerNumber}
+   		LIMIT 0,1
+   </select> 
+   
+   <!-- 新增残损信息 -->
+     <insert id="insertDamagedInforRecord" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="net.pingfang.entity.work.DamageInforRecordVo">
+   		INSERT INTO damaged_Infor_Record 
+		(   
+			work_id,
+		  	seq_no,
+		  	container_number,
+		  	damaged_type_id,
+		  	trust,
+		  	position_id,
+		  	damaged_desc,
+		  	create_name             
+		)VALUES(
+			#{workId},
+			#{seqNo},
+			#{containerNumber},
+			#{damagedTypeId},
+	        #{trust},
+	        #{positionId},
+	        #{desc},
+	        #{createName}
+		)
+   </insert> 
+   <!-- 更新残损信息 -->
+   <update id="updateDamagedInforRecord" parameterType="net.pingfang.entity.work.DamageInforRecordVo">
+   		UPDATE damaged_Infor_Record
+		SET
+			damaged_type_id = #{damagedTypeId},	  
+			trust = #{trust},	 
+			position_id = #{positionId},
+			damaged_desc = #{desc}
+		WHERE id = #{id}
+   </update>
+    <!-- 更新残损信息 -->
+   <update id="updateDamagedInforRecordByWorkId" parameterType="net.pingfang.entity.work.DamageInforRecordVo">
+   		UPDATE damaged_Infor_Record
+		SET
+			damaged_type_id = #{damagedTypeId},	  
+			trust = #{trust},	 
+			position_id = #{positionId},
+			damaged_desc = #{desc}
+		WHERE work_id = #{workId}
+   </update>
+   <!-- 更新残损信息同步状态为'Y' -->
+   <update id="updateSynchronizationById">
+   		UPDATE damaged_Infor_Record SET synchronization = 'Y' WHERE id = #{id}
+   </update>
+   <!--  根据id删除残损信息 -->
+    <delete id="deleteDamagedInforRecord">
+   		DELETE FROM damaged_Infor_Record WHERE id = #{id}
+   </delete> 
+   
+   <!--  获取作业数据箱号  -->
+    <select id="getWorkRecordSelect" resultType="net.pingfang.entity.work.WorkRecordVo" parameterType="net.pingfang.entity.work.WorkRecordVo">
+	 	SELECT 
+	     	id 					AS 'id',
+		  	seq_no 				AS 'seqNo',	
+			update_contaid 		AS 'updateContaid'
+	    FROM work_record
+	    WHERE 1 = 1
+	    <if test="null !=contaid and ''!=contaid">
+	  		AND update_contaid LIKE CONCAT('%',#{contaid},'%')
+	  	</if> 
+	  	ORDER BY id DESC
+	    LIMIT 0,500
+   </select>
+   
+   <!--  crane_num 			AS 'craneNum',
+					vessel_name_cn 		AS 'vesselNameCn',
+						
+					-->
+					
+   <select id="getWorkRecordList" resultType="net.pingfang.entity.work.WorkRecordVo"> 
+   		<foreach collection="list" item="item" index="index" separator="  UNION ALL">
+			  SELECT 
+			     	id 					AS 'id',
+			     	seq_no 				AS 'seqNo',	
+			     	vessel_code 		AS 'vesselCode',
+					vessel_voyage_number AS 'vesselNumber',				
+					work_type 			AS 'workType',	
+					update_top_plate	AS 'updateTopPlate',
+					container_type 		AS 'containerType',
+					orderid,
+					update_contaid 		AS 'updateContaid',
+					damaged,
+					passtime			AS 'passTime'
+			    FROM work_record
+			    WHERE 1 = 1
+			    <if test="null !=item.containerNumber and ''!=item.containerNumber">
+			  		AND update_contaid  = UPPER(#{item.containerNumber})
+			  	</if>
+				AND vessel_voyage_number = #{item.vesselNumber}	
+	  	</foreach>
+	  	ORDER BY id DESC
+   </select>
+   
+   <!-- 根据作业编号和箱号获取一条残损信息 -->
+    <select id="getCountByWorkId">
+   		SELECT count(id)
+		FROM damaged_Infor_Record 
+   		WHERE work_id = #{workId}
+   </select> 
+</mapper>

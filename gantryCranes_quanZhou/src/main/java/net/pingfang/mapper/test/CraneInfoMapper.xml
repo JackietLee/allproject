@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.test.CraneInfoDaoTest">
+	
+
+   <!-- 插入一条岸桥信息 -->
+   <insert id="insertCraneInfoTest" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="net.pingfang.entity.vessel.CraneInfoVo">
+   		INSERT INTO crane_infor_cgf_test 
+		(   
+			seqNo,
+			craneNameCn,
+			craneNameEn,
+			craneNum,
+			type,
+			control_machine_ip,
+   			control_machine_port      
+		)VALUES(
+			#{createtime},	
+			#{craneNameCn},	  
+			#{craneNameEn},	 
+			#{craneNum},	
+			#{type},	  
+			#{controlIp},	 
+			#{controlPort}
+		)
+   </insert>
+   
+   
+</mapper>

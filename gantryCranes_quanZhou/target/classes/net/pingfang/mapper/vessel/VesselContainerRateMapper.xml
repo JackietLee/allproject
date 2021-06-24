@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.vessel.VesselContainerRateDao">
+    <select id="getAlreadyDeal" resultType="net.pingfang.entity.vessel.VesselContainerRateVo" parameterType="net.pingfang.entity.work.WorkRecordVo">
+        SELECT
+            wr.vessel_name_cn 		AS 'vesselName',
+            wr.update_contaid 		AS 'containerNum',
+            wr.vessel_voyage_number	AS 'voyageNo',
+            wr.work_type 			AS 'workType',
+            wr.crane_num 		AS 'craneNum',
+            wr.top_plate 		AS 'truckNum',
+            wr.iso 		AS 'iso',
+            wr.container_type 	AS 'containerType',
+            wr.conta_weight 		AS 'containerWeight',
+            wr.vessel_position		AS 'vesselPosition',
+            wr.bay_info				AS 'bayInfo',
+            wr.passtime				AS 'passtime'
+        from work_record wr right join (select *,case in_out
+                                                    WHEN '1' then 1
+                                                    WHEN '2' then 0
+                                        end as "work_type"
+        from tz_vessel_listing) tvl
+        on wr.update_contaid = tvl.container_number and wr.vessel_name_cn = tvl.vessel_name and wr.work_type = tvl.work_type
+        where wr.vessel_code = #{vesselCode} and wr.is_state = 1
+    </select>
+
+    <select id="getAll" resultType="net.pingfang.entity.vessel.VesselContainerRateVo" parameterType="net.pingfang.entity.work.WorkRecordVo">
+        SELECT
+            tvl.vessel_name 		AS 'vesselName',
+            tvl.container_number 		AS 'containerNum',
+            tvl.voyage	        AS 'voyageNo',
+            tvl.work_type 		AS 'workType',
+            wr.crane_num 		AS 'craneNum',
+            wr.top_plate 		AS 'truckNum',
+            wr.iso 		AS 'iso',
+            wr.container_type 	AS 'containerType',
+            wr.conta_weight 		AS 'containerWeight',
+            wr.vessel_position		AS 'vesselPosition',
+            wr.bay_info				AS 'bayInfo',
+            wr.passtime				AS 'passtime'
+        from work_record wr right join (select *,case in_out
+                                                    WHEN '1' then 1
+                                                    WHEN '2' then 0
+            end as "work_type"
+            from tz_vessel_listing) tvl
+            on wr.update_contaid = tvl.container_number and wr.vessel_name_cn = tvl.vessel_name and wr.work_type = tvl.work_type
+        where tvl.vessel_number = #{vesselCode}
+    </select>
+</mapper>

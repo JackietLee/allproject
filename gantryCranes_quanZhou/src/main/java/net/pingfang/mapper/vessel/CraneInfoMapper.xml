@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="net.pingfang.dao.vessel.CraneInfoDao">
+	<!-- 获取所有岸桥信息 (原来的)-->
+   <!-- <select id="getCraneInfoList" resultType="net.pingfang.entity.vessel.CraneInfoVo">
+   		SELECT 
+   			id,
+   			craneNameCn,
+   			craneNameEn,
+   			craneNum,
+   			type,
+   			control_machine_ip		AS 'controlIp',
+   			control_machine_port	AS 'controlPort',
+   			createtime 
+   		FROM crane_infor
+   		WHERE 1 = 1
+   		<if test="null !=type and ''!=type">
+	  		AND type = #{type}
+	  	</if> 
+   		ORDER BY craneNum ASC
+   </select> -->
+   <!-- 获取所有岸桥信息——（谢小惠） -->
+   <select id="getCraneInfoList" resultType="net.pingfang.entity.vessel.CraneInfoVo" parameterType="net.pingfang.entity.vessel.CraneInfoVo">
+   		SELECT 
+   			id,
+   			craneNameCn,
+   			craneNameEn,
+   			craneNum,
+   			type,
+   			control_machine_ip		AS 'controlIp',
+   			control_machine_port	AS 'controlPort',
+   			createtime 
+   		FROM crane_infor
+   		WHERE 1 = 1
+   		<if test ="null != craneNum and '' != craneNum">
+	  		AND craneNum = #{craneNum}
+	  	</if>
+   		<if test="null !=type and ''!=type">
+	  		AND type = #{type}
+	  	</if>
+   		ORDER BY craneNum ASC
+   </select>
+   
+   
+   <!-- 根据ID获取一条岸桥信息 -->
+   <select id="getCraneInfoById" resultType="net.pingfang.entity.vessel.CraneInfoVo" parameterType="int">
+   		SELECT 
+   			 id,
+   			 craneNameCn,
+			 craneNameEn,
+			 craneNum,
+			 type,
+			 control_machine_ip		AS 'controlIp',
+   			 control_machine_port	AS 'controlPort',
+			 createtime
+		FROM crane_infor
+   		WHERE id = #{id}
+   </select> 
+   
+   <!-- 根据岸桥编号获取一条岸桥信息 -->
+   <select id="getCraneInfoByCraneNum" resultType="net.pingfang.entity.vessel.CraneInfoVo" parameterType="String">
+   		SELECT 
+   			 id,
+   			 craneNameCn,
+			 craneNameEn,
+			 craneNum,
+			 type,
+			 control_machine_ip		AS 'controlIp',
+   			 control_machine_port	AS 'controlPort',
+			 createtime
+		FROM crane_infor
+   		WHERE craneNum = #{craneNum}
+   		LIMIT 0,1
+   </select> 
+   
+   <!-- 插入一条岸桥信息 -->
+   <insert id="insertCraneInfo" useGeneratedKeys="true" keyProperty="id" keyColumn="id" parameterType="net.pingfang.entity.vessel.CraneInfoVo">
+   		INSERT INTO crane_infor 
+		(   
+			craneNameCn,
+			craneNameEn,
+			craneNum,
+			type,
+			control_machine_ip,
+   			control_machine_port      
+		)VALUES(
+			#{craneNameCn},	  
+			#{craneNameEn},	 
+			#{craneNum},	
+			#{type},	  
+			#{controlIp},	 
+			#{controlPort}
+		)
+   </insert>
+   
+   <!-- 更新一条岸桥信息 -->
+   <update id="updateCraneInfo" parameterType="net.pingfang.entity.vessel.CraneInfoVo">
+   		UPDATE crane_infor
+		SET
+			craneNameCn = #{craneNameCn},	  
+			craneNameEn = #{craneNameEn},	 
+			craneNum = #{craneNum},	  
+			control_machine_ip = #{controlIp},	 
+			control_machine_port = #{controlPort}
+		WHERE id = #{id}
+   </update>
+   <!--  删除一条岸桥信息 -->
+    <delete id="deleteCraneInfo">
+   		DELETE FROM crane_infor WHERE id = #{id}
+   </delete>
+   
+   <!-- 查询黄埔门机下拉列表 -->
+   <select id="getHpCraneOptions" resultType="net.pingfang.entity.vessel.CraneInfoVo">
+   		SELECT 
+   			id,
+   			craneNameCn,
+   			craneNameEn,
+   			craneNum,
+   			createtime 
+   		FROM crane_infor
+   		WHERE type = '2'
+   		ORDER BY craneNum ASC
+   </select>
+</mapper>
