@@ -1,7 +1,9 @@
 package com.itjay.springshiro.entity;
 
+import com.itjay.springshiro.SpringshiroApplication;
 import lombok.Data;
 import lombok.ToString;
+import org.springframework.boot.SpringApplication;
 
 import javax.persistence.*;
 
@@ -19,4 +21,8 @@ public class User {
     private String userName;
     @Column(name = "password")
     private String password;
+
+    public static void main(String[] args) {
+        SpringApplication.run(SpringshiroApplication.class, args);
+    }
 }

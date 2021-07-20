@@ -16,17 +16,20 @@ public class JdkProxy {
         return Proxy.newProxyInstance(target.getClass().getClassLoader(), target.getClass().getInterfaces(), new InvocationHandler() {
             @Override
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                System.out.println("开始");
+//                System.out.println("开始");
                 Object invoke = method.invoke(target, args);
-                System.out.println("结束");
+//                System.out.println("结束");
                 return invoke;
             }
         });
     }
 
     public static void main(String[] args) {
-        Subject proxyInstance = (Subject) new JdkProxy(new SubjectImpl()).getProxyInstance();
-        int request = proxyInstance.request();
-        System.out.println(request);
+        long l = System.currentTimeMillis();
+        for(int i=0;i<10000000;i++) {
+            Subject proxyInstance = (Subject) new JdkProxy(new SubjectImpl()).getProxyInstance();
+//            int request = proxyInstance.request();
+        }
+        System.out.println(System.currentTimeMillis()-l);
     }
 }

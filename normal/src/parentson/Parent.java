@@ -1,8 +1,13 @@
 package parentson;
 
-public class Parent {
+public class Parent implements Cloneable{
     int i = 1;
     char ch;
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
 
     public static class Son extends Parent{
 //        int i = 2;

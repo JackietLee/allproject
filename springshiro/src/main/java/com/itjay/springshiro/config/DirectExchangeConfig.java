@@ -13,7 +13,6 @@ public class DirectExchangeConfig {
     @Bean
     public DirectExchange directExchange() {
         DirectExchange directExchange = new DirectExchange("direct");
-
         return directExchange;
     }
 
